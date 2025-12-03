@@ -2,10 +2,27 @@ from flask import Flask, request, jsonify, render_template
 import joblib
 import pickle
 import string
+import nltk
 from nltk.stem import WordNetLemmatizer
 import matplotlib.pyplot as plt
 import io
 import base64
+
+# Download required NLTK data
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    nltk.download('punkt')
+
+try:
+    nltk.data.find('corpora/wordnet')
+except LookupError:
+    nltk.download('wordnet')
+
+try:
+    nltk.data.find('corpora/stopwords')
+except LookupError:
+    nltk.download('stopwords')
 
 app = Flask(__name__)
 
@@ -93,4 +110,4 @@ def predict():
     })
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
