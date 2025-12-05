@@ -3,7 +3,6 @@ gunicorn==21.2.0
 joblib==1.5.1
 matplotlib==3.10.5
 numpy==1.26.4
-pandas==2.3.2
 scikit-learn==1.7.1
 nltk==3.8.1
 Werkzeug==3.1.3

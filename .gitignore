@@ -30,4 +30,5 @@ Emotion_Detection_without_NLTK.ipynb
 railway.json
 merged_training.zip
 merged_training.pkl
+*.zip
 Sentiment/
