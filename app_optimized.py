@@ -8,42 +8,41 @@ import matplotlib.pyplot as plt
 import io
 import base64
 
+# Download NLTK data immediately
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    nltk.download('punkt', quiet=True)
+try:
+    nltk.data.find('corpora/wordnet')
+except LookupError:
+    nltk.download('wordnet', quiet=True)
+try:
+    nltk.data.find('corpora/stopwords')
+except LookupError:
+    nltk.download('stopwords', quiet=True)
+
 app = Flask(__name__)
 
-# Download NLTK data on startup
-@app.before_first_request
-def download_nltk_data():
-    try:
-        nltk.data.find('tokenizers/punkt')
-    except LookupError:
-        nltk.download('punkt')
-    try:
-        nltk.data.find('corpora/wordnet')
-    except LookupError:
-        nltk.download('wordnet')
-    try:
-        nltk.data.find('corpora/stopwords')
-    except LookupError:
-        nltk.download('stopwords')
-
-# Load models (lazy loading to reduce memory usage)
-classifier = None
-tfidf_vectorizer = None
-emotion_model = None
-emotion_vectorizer = None
-
-def load_models():
-    global classifier, tfidf_vectorizer, emotion_model, emotion_vectorizer
-    if classifier is None:
-        classifier = joblib.load('model.pkl')
-        tfidf_vectorizer = joblib.load('vectorizer.pkl')
-        emotion_model = joblib.load('emotion_model.pkl')
-        emotion_vectorizer = joblib.load('emotion_vectorizer.pkl')
+# Load models at startup
+try:
+    classifier = joblib.load('model.pkl')
+    tfidf_vectorizer = joblib.load('vectorizer.pkl')
+    emotion_model = joblib.load('emotion_model.pkl')
+    emotion_vectorizer = joblib.load('emotion_vectorizer.pkl')
+    print("Models loaded successfully")
+except Exception as e:
+    print(f"Error loading models: {e}")
+    classifier = tfidf_vectorizer = emotion_model = emotion_vectorizer = None
 
 EMOTION_MAP = {
     0: "anger", 1: "fear", 2: "joy", 
     3: "love", 4: "sadness", 5: "surprise"
 }
+
+@app.route("/health")
+def health():
+    return jsonify({"status": "healthy"}), 200
 
 @app.route("/")
 def home():
@@ -51,8 +50,9 @@ def home():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    load_models()
-    
+    if not all([classifier, tfidf_vectorizer, emotion_model, emotion_vectorizer]):
+        return jsonify({"error": "Models not loaded"}), 500
+        
     input_text = request.json.get("text", "")
     if not input_text:
         return jsonify({"error": "No text provided"}), 400
